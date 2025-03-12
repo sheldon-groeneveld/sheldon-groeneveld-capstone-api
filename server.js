@@ -22,8 +22,14 @@ app.get("/", (_req, res) => {
 
 io.on("connection", (socket) => {
   console.log(`a user connected: ${socket.id}`);
+
+  socket.on("join_room", (data) => {
+    socket.join(data);
+    console.log("a user joined room: ", data);
+  });
+
   socket.on("send_message", (data) => {
-    socket.broadcast.emit("recieve_message", data);
+    socket.to(data.room).emit("recieve_message", data);
   });
 });
 
