@@ -26,19 +26,20 @@ io.on("connection", (socket) => {
   users.push(socket.id);
   console.log(users);
 
-  socket.on("create_room", (roomCode) => {
-    openRooms.push(roomCode);
+  socket.on("create_room", (room) => {
+    openRooms.push(room);
     console.log(openRooms);
   });
 
   socket.on("check_room", ({ room, id }) => {
     console.log(room, id);
-    roomExists = openRooms.includes(room);
+    let roomExists = openRooms.includes(room);
     socket.emit("room_verified", roomExists);
   });
 
-  socket.on("join_room", (roomCode) => {
-    socket.join(roomCode);
+  socket.on("join_room", ({ room, id }) => {
+    console.log(`${id} joined room ${room}`);
+    socket.join(room);
   });
 
   socket.on("send_message", (data) => {
