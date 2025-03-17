@@ -22,20 +22,28 @@ let users = [];
 let openRooms = [];
 
 io.on("connection", (socket) => {
-  users.push(socket.id);
-
   socket.on("create_room", (room) => {
     openRooms.push(room);
   });
 
-  socket.on("check_room", ({ room, id }) => {
+  socket.on("check_room", (room) => {
     let roomExists = openRooms.includes(room);
     socket.emit("room_verified", roomExists);
   });
 
-  socket.on("join_room", ({ room, id }) => {
+  socket.on("join_room", ({ room, nickname, id }) => {
+    if (users.find((user) => user.id === id)) {
+      console.log(users.findIndex((user) => user.id === id));
+      users.splice(
+        users.findIndex((user) => user.id === id),
+        1
+      );
+    }
+
     socket.join(room);
-    io.to(room).emit("lobby_list", id);
+    users.push({ nickname: nickname, id: id, currentRoom: room });
+    // console.log(users);
+    io.to(room).emit("lobby_list", users);
   });
 
   socket.on("send_message", (data) => {
