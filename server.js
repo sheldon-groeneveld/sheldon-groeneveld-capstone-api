@@ -22,23 +22,18 @@ let users = [];
 let openRooms = [];
 
 io.on("connection", (socket) => {
-  console.log(`a user connected: ${socket.id}`);
   users.push(socket.id);
-  console.log(users);
 
   socket.on("create_room", (room) => {
     openRooms.push(room);
-    console.log(openRooms);
   });
 
   socket.on("check_room", ({ room, id }) => {
-    // console.log(room, id);
     let roomExists = openRooms.includes(room);
     socket.emit("room_verified", roomExists);
   });
 
   socket.on("join_room", ({ room, id }) => {
-    console.log(`${id} joined room ${room}`);
     socket.join(room);
     io.to(room).emit("lobby_list", id);
   });
