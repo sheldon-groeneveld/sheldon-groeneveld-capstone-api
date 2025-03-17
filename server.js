@@ -33,7 +33,6 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", ({ room, nickname, id }) => {
     if (users.find((user) => user.id === id)) {
-      console.log(users.findIndex((user) => user.id === id));
       users.splice(
         users.findIndex((user) => user.id === id),
         1
@@ -41,9 +40,9 @@ io.on("connection", (socket) => {
     }
 
     socket.join(room);
-    users.push({ nickname: nickname, id: id, currentRoom: room });
-    // console.log(users);
-    io.to(room).emit("lobby_list", users);
+    users.push({ nickname: nickname, id: id, room: room });
+    let usersInRoom = users.filter((user) => user.room === room);
+    io.to(room).emit("lobby_list", usersInRoom);
   });
 
   socket.on("send_message", (data) => {
