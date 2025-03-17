@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("check_room", ({ room, id }) => {
-    console.log(room, id);
+    // console.log(room, id);
     let roomExists = openRooms.includes(room);
     socket.emit("room_verified", roomExists);
   });
@@ -40,6 +40,7 @@ io.on("connection", (socket) => {
   socket.on("join_room", ({ room, id }) => {
     console.log(`${id} joined room ${room}`);
     socket.join(room);
+    io.to(room).emit("lobby_list", id);
   });
 
   socket.on("send_message", (data) => {
