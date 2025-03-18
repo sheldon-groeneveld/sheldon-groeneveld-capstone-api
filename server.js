@@ -50,6 +50,11 @@ io.on("connection", (socket) => {
     io.to(room).emit("lobby_list", usersInRoom);
   });
 
+  socket.on("start_game", (room) => {
+    console.log("started the game in room: ", room);
+    io.to(room).emit("game_start");
+  });
+
   socket.on("send_message", (data) => {
     socket.to(data.room).emit("recieve_message", data);
   });
