@@ -18,50 +18,60 @@ app.get("/", (_req, res) => {
   res.send("<h1>Hello World</h1>");
 });
 
-let users = [];
-let openRooms = [];
+// let users = [];
+// let openRooms = [];
+let game = {};
 
 io.on("connection", (socket) => {
   socket.on("create_room", (room) => {
-    openRooms.push(room);
+    // openRooms.push(room);
+    if (!game[room]) {
+      game[room] = { users: [], answers: [] };
+      // console.log(game);
+    }
   });
 
   socket.on("check_room", (room) => {
-    let roomExists = openRooms.includes(room);
+    let roomExists = `${room}` in game;
     socket.emit("room_verified", roomExists);
   });
 
   socket.on("join_room", ({ room, nickname, id }) => {
-    if (users.find((user) => user.id === id)) {
-      const oldRoom = users.find((user) => {
-        return user.id === id;
-      }).room;
-      users.splice(
-        users.findIndex((user) => user.id === id),
-        1
-      );
-      const usersInOldRoom = users.filter((user) => user.room === oldRoom);
-      io.to(oldRoom).emit("lobby_list", usersInOldRoom);
+    // if (users.find((user) => user.id === id)) {
+    //   const oldRoom = users.find((user) => {
+    //     return user.id === id;
+    //   }).room;
+    //   users.splice(
+    //     users.findIndex((user) => user.id === id),
+    //     1
+    //   );
+    //   const usersInOldRoom = users.filter((user) => user.room === oldRoom);
+    //   io.to(oldRoom).emit("lobby_list", usersInOldRoom);
+    // }
+    if (!game[room].users.includes(nickname)) {
+      socket.join(room);
+      // users.push({ nickname: nickname, id: id, room: room });
+      game[room].users.push(nickname);
+      console.log(game);
+      // const usersInRoom = users.filter((user) => user.room === room);
+      io.to(room).emit("lobby_list", game[room].users);
     }
-
-    socket.join(room);
-    users.push({ nickname: nickname, id: id, room: room });
-    const usersInRoom = users.filter((user) => user.room === room);
-    io.to(room).emit("lobby_list", usersInRoom);
   });
 
   socket.on("start_game", (room) => {
-    console.log("started the game in room: ", room);
     io.to(room).emit("game_start");
   });
 
-  socket.on("send_message", (data) => {
-    socket.to(data.room).emit("recieve_message", data);
+  socket.on("send_answer", ({ room, answer }) => {
+    console.log("answer from client: ", answer);
+    game[room].answers.push(answer);
+    // console.log(game);
+    io.to(room).emit("recieve_answer", game[room].answers);
   });
 
-  socket.on("disconnect", () => {
-    users = users.filter((id) => id === socket.id);
-  });
+  // socket.on("disconnect", () => {
+  //   users = users.filter((id) => id === socket.id);
+  // });
 });
 
 server.listen(PORT, () => {
