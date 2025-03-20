@@ -68,10 +68,10 @@ io.on("connection", (socket) => {
     io.to(room).emit("users_get", game[room].users);
   });
 
-  socket.on("send_answer", ({ room, answer }) => {
+  socket.on("send_answer", ({ room, payload }) => {
     // console.log("answer from client: ", answer);
-    game[room].answers.push(answer);
-    // console.log(game);
+    game[room].answers.push(payload);
+    // console.log(game[room].answers);
     io.to(room).emit("recieve_answer", shuffle(game[room].answers));
   });
 
