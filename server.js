@@ -85,7 +85,14 @@ io.on("connection", (socket) => {
     game[room].voteCount++;
     if (game[room].voteCount === game[room].users.length) {
       io.to(room).emit("show_results", game[room].answers);
+      console.log(game[room]);
     }
+  });
+
+  socket.on("reset_room", ({ room }) => {
+    game[room].answers = [];
+    game[room].voteCount = 0;
+    io.to(room).emit("room_reset", game[room].answers);
   });
 
   // socket.on("request_answers", (room) =>
