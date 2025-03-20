@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
   socket.on("create_room", (room) => {
     // openRooms.push(room);
     if (!game[room]) {
-      game[room] = { users: [], answers: [] };
+      game[room] = { users: [], answers: [], voteCount: 0 };
       // console.log(game);
     }
   });
@@ -54,7 +54,7 @@ io.on("connection", (socket) => {
       socket.join(room);
       // users.push({ nickname: nickname, id: id, room: room });
       game[room].users.push(nickname);
-      console.log(game);
+      // console.log(game);
       // const usersInRoom = users.filter((user) => user.room === room);
       io.to(room).emit("lobby_list", game[room].users);
     }
@@ -72,12 +72,25 @@ io.on("connection", (socket) => {
     // console.log("answer from client: ", answer);
     game[room].answers.push(payload);
     // console.log(game[room].answers);
-    io.to(room).emit("recieve_answer", shuffle(game[room].answers));
+    if (game[room].answers.length === game[room].users.length) {
+      io.to(room).emit("recieve_answer", shuffle(game[room].answers));
+    }
   });
 
-  socket.on("request_answers", (room) =>
-    io.to(room).emit("recieve_answer", shuffle(game[room].answers))
-  );
+  socket.on("send_vote", ({ room, nickname, vote }) => {
+    game[room].answers
+      .find((answer) => answer.answer === vote)
+      .voters.push(nickname);
+    // console.log(game[room].answers);
+    game[room].voteCount++;
+    if (game[room].voteCount === game[room].users.length) {
+      io.to(room).emit("show_results", game[room].answers);
+    }
+  });
+
+  // socket.on("request_answers", (room) =>
+  //   io.to(room).emit("recieve_answer", shuffle(game[room].answers))
+  // );
 
   // socket.on("disconnect", () => {
   //   users = users.filter((id) => id === socket.id);
