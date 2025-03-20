@@ -3,6 +3,8 @@ import "dotenv/config";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 
+import { shuffle } from "./shuffle.js";
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -65,9 +67,13 @@ io.on("connection", (socket) => {
   socket.on("send_answer", ({ room, answer }) => {
     console.log("answer from client: ", answer);
     game[room].answers.push(answer);
-    // console.log(game);
-    io.to(room).emit("recieve_answer", game[room].answers);
+    console.log(game);
+    io.to(room).emit("recieve_answer", shuffle(game[room].answers));
   });
+
+  socket.on("request_answers", (room) =>
+    io.to(room).emit("recieve_answer", shuffle(game[room].answers))
+  );
 
   // socket.on("disconnect", () => {
   //   users = users.filter((id) => id === socket.id);
