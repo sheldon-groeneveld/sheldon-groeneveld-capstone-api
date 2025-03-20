@@ -50,7 +50,7 @@ io.on("connection", (socket) => {
     //   const usersInOldRoom = users.filter((user) => user.room === oldRoom);
     //   io.to(oldRoom).emit("lobby_list", usersInOldRoom);
     // }
-    if (!game[room].users.includes(nickname)) {
+    if (!game[room].users.includes(nickname) && game[room].users.length < 6) {
       socket.join(room);
       // users.push({ nickname: nickname, id: id, room: room });
       game[room].users.push(nickname);
@@ -64,10 +64,14 @@ io.on("connection", (socket) => {
     io.to(room).emit("game_start");
   });
 
+  socket.on("get_users", (room) => {
+    io.to(room).emit("users_get", game[room].users);
+  });
+
   socket.on("send_answer", ({ room, answer }) => {
-    console.log("answer from client: ", answer);
+    // console.log("answer from client: ", answer);
     game[room].answers.push(answer);
-    console.log(game);
+    // console.log(game);
     io.to(room).emit("recieve_answer", shuffle(game[room].answers));
   });
 
