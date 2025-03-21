@@ -27,13 +27,23 @@ io.on("connection", (socket) => {
   let newUser = { id: socket.id, username: "", room: "" };
   socket.on("create_room", (room) => {
     if (!game[room]) {
-      game[room] = { users: [], answers: [], voteCount: 0 };
+      game[room] = { users: [], answers: [], voteCount: 0, isOpen: true };
     }
   });
 
   socket.on("check_room", (room) => {
     let roomExists = `${room}` in game;
-    socket.emit("room_verified", roomExists);
+    if (roomExists) {
+      socket.emit("room_verified", {
+        roomExists: roomExists,
+        roomIsOpen: game[room].isOpen,
+      });
+    } else {
+      socket.emit("room_verified", {
+        roomExists: roomExists,
+        roomIsOpen: false,
+      });
+    }
   });
 
   socket.on("join_room", ({ room, nickname }) => {
@@ -47,6 +57,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("start_game", (room) => {
+    game[room].isOpen = false;
     io.to(room).emit("game_start");
   });
 
