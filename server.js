@@ -21,8 +21,10 @@ app.get("/", (_req, res) => {
 });
 
 let game = {};
+let activeUsers = [];
 
 io.on("connection", (socket) => {
+  let newUser = { id: socket.id, username: "", room: "" };
   socket.on("create_room", (room) => {
     if (!game[room]) {
       game[room] = { users: [], answers: [], voteCount: 0 };
@@ -37,6 +39,8 @@ io.on("connection", (socket) => {
   socket.on("join_room", ({ room, nickname }) => {
     if (!game[room].users.includes(nickname) && game[room].users.length < 6) {
       socket.join(room);
+      newUser = { ...newUser, username: nickname, room: room };
+      activeUsers.push(newUser);
       game[room].users.push(nickname);
       io.to(room).emit("lobby_list", game[room].users);
     }
@@ -71,6 +75,17 @@ io.on("connection", (socket) => {
     game[room].answers = [];
     game[room].voteCount = 0;
     io.to(room).emit("room_reset", game[room].answers);
+  });
+
+  socket.on("disconnect", () => {
+    let disconnectedUser = activeUsers.find((user) => user.id === socket.id);
+    activeUsers = activeUsers.filter((user) => user.id !== socket.id);
+    if (disconnectedUser && disconnectedUser.room) {
+      game[disconnectedUser.room].users.splice(
+        game[disconnectedUser.room].users.indexOf(disconnectedUser.username),
+        1
+      );
+    }
   });
 });
 
